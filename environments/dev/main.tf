@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "devops-directive-tf-state" # REPLACE WITH YOUR BUCKET NAME
+  bucket        = "santhosh9349-tf-state"
   force_destroy = true
 }
 
