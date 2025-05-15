@@ -9,7 +9,7 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "uk-west-2"
+  region = "eu-west-2"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
