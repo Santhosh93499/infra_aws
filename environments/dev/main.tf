@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "santhosh9349-tf-state-unique-12345" # Change to a unique name
+  bucket        = "santhosh9349-tf-state
   force_destroy = true
 
   tags = {
@@ -40,7 +40,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_c
   }
 }
 
-resource "aws_dynamodb_table" "terraform_locks" {
+resource "aws_dynamodb_table" "tf_locks" {
   name         = "terraform-state-locking"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
