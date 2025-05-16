@@ -1,17 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-# Configure the AWS Provider
-provider "aws" {
-  region = "eu-west-2"
-}
-
 resource "aws_s3_bucket" "terraform_state" {
   bucket        = "santhosh9349-tf-state"
   force_destroy = true
@@ -40,7 +26,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_c
   }
 }
 
-resource "aws_dynamodb_table" "tf_locks" {
+resource "aws_dynamodb_table" "terraform-state-locking" {
   name         = "terraform-state-locking"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
