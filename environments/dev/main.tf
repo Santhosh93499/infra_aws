@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "santhosh9349-tf-state
+  bucket        = "santhosh9349-tf-state"
   force_destroy = true
 
   tags = {
