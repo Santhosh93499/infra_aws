@@ -16,6 +16,7 @@ on:
           - latest
           - v1.0
           - v2.0
+          - v3.0
 
       dry_run:
         type: boolean
