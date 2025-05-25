@@ -25,22 +25,17 @@ on:
 jobs:
   manual-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/app  # 👈 Default working directory for all run commands
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Show inputs
         run: |
-          echo "Deploying to environment: ${{ github.event.inputs.environment }}"
           echo "Version selected: ${{ github.event.inputs.deploy_version }}"
           echo "Dry run mode: ${{ github.event.inputs.dry_run }}"
 
       - name: Deploy to environment
-        if: ${{ !github.event.inputs.dry_run }}
+        if: ${{ github.event.inputs.dry_run == 'false' }}
         run: |
           echo "Deploying application..."
           # Add your actual deployment script here
