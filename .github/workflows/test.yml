@@ -1,0 +1,46 @@
+name: Manual Deployment Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Select deployment environment'
+        required: true
+
+      deploy_version:
+        type: choice
+        description: 'Which version to deploy?'
+        required: true
+        options:
+          - latest
+          - v1.0
+          - v2.0
+
+      dry_run:
+        type: boolean
+        description: 'Enable dry run mode?'
+        default: true
+
+jobs:
+  manual-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/app  # 👈 Default working directory for all run commands
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Show inputs
+        run: |
+          echo "Deploying to environment: ${{ github.event.inputs.environment }}"
+          echo "Version selected: ${{ github.event.inputs.deploy_version }}"
+          echo "Dry run mode: ${{ github.event.inputs.dry_run }}"
+
+      - name: Deploy to environment
+        if: ${{ !github.event.inputs.dry_run }}
+        run: |
+          echo "Deploying application..."
+          # Add your actual deployment script here
