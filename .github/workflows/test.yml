@@ -1,42 +1,95 @@
-name: Manual Deployment Workflow
+name: Manual Dispatch with Various Inputs
 
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        type: environment
-        description: 'Select deployment environment'
+      deployment_message:
+        description: 'Message to include in the deployment log'
         required: true
+        type: string
+        default: 'Default deployment initiated.'
 
-      deploy_version:
-        type: choice
-        description: 'Which version to deploy?'
-        required: true
-        options:
-          - latest
-          - v1.0
-          - v2.0
-          - v3.0
-
-      dry_run:
+      is_critical_deployment:
+        description: 'Is this a critical deployment requiring extra notifications?'
+        required: false
         type: boolean
-        description: 'Enable dry run mode?'
-        default: true
+        default: false
+
+      log_verbosity:
+        description: 'Select the verbosity level for logs'
+        required: true
+        type: choice
+        options:
+          - DEBUG
+          - INFO
+          - WARNING
+          - ERROR
+        default: 'INFO'
+
+      target_environment:
+        description: 'Select the target deployment environment'
+        required: true
+        type: environment # User will select from configured repo environments
+
+      retry_attempts:
+        description: 'Number of retry attempts (0-3) for a conceptual task'
+        required: false
+        type: string # 'number' is not a direct type; it's input as string
+        default: '1'
 
 jobs:
-  manual-deploy:
+  process_and_log:
+    name: Process Manual Inputs and Log
     runs-on: ubuntu-latest
+
+    # If you were actually deploying, you'd use the selected environment here:
+    # environment:
+    #   name: ${{ github.event.inputs.target_environment }}
+    #   url: https://my-app.com/${{ github.event.inputs.target_environment }} # Example deployment URL
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Show inputs
+      - name: Display Provided Inputs
         run: |
-          echo "Version selected: ${{ github.event.inputs.deploy_version }}"
-          echo "Dry run mode: ${{ github.event.inputs.dry_run }}"
+          echo "🚀 Starting process with the following inputs:"
+          echo "-------------------------------------------------"
+          echo "Deployment Message: ${{ github.event.inputs.deployment_message }}"
+          echo "Is Critical Deployment: ${{ github.event.inputs.is_critical_deployment }}"
+          echo "Log Verbosity: ${{ github.event.inputs.log_verbosity }}"
+          echo "Target Environment: ${{ github.event.inputs.target_environment }}"
+          echo "Retry Attempts (as string): ${{ github.event.inputs.retry_attempts }}"
+          echo "-------------------------------------------------"
 
-      - name: Deploy to environment
-        if: ${{ github.event.inputs.dry_run == 'false' }}
+      - name: Conditional Action based on 'is_critical_deployment'
+        if: ${{ github.event.inputs.is_critical_deployment == 'true' }} # Boolean inputs are received as strings 'true' or 'false'
         run: |
-          echo "Deploying application..."
-          # Add your actual deployment script here
+          echo "🚨 CRITICAL DEPLOYMENT FLAGGED! Sending high-priority notifications..."
+          # Add actual notification steps here
+
+      - name: Action based on 'log_verbosity'
+        run: |
+          echo "Setting up logging with verbosity: ${{ github.event.inputs.log_verbosity }}"
+          if [ "${{ github.event.inputs.log_verbosity }}" == "ERROR" ]; then
+            echo "::error title=Simulated Error::An error condition was simulated due to log_verbosity setting."
+          elif [ "${{ github.event.inputs.log_verbosity }}" == "WARNING" ]; then
+            echo "::warning title=Simulated Warning::A warning condition was simulated."
+          else
+            echo "Logging at ${{ github.event.inputs.log_verbosity }} level."
+          fi
+
+      - name: Simulate task using 'retry_attempts'
+        run: |
+          RETRIES="${{ github.event.inputs.retry_attempts }}"
+          echo "Conceptual task will attempt to run with up to $RETRIES retry(ies)."
+          # In a real script, you might convert RETRIES to an integer for loops or comparisons:
+          # if [ "$RETRIES" -gt 0 ]; then
+          #   echo "Retries are enabled."
+          # fi
+          echo "Simulating task execution for environment: ${{ github.event.inputs.target_environment }}..."
+          echo "Deployment message for this run: ${{ github.event.inputs.deployment_message }}"
+
+      - name: Confirm Target Environment Usage
+        # This step demonstrates how you might confirm the environment,
+        # though the actual deployment would use the 'environment:' key at the job level.
+        run: |
+          echo "Workflow is conceptually targeted at the '${{ github.event.inputs.target_environment }}' environment."
+          echo "Actual deployment steps for '${{ github.event.inputs.target_environment }}' would follow, using its specific secrets and variables."
