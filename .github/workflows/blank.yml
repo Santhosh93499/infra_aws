@@ -1,0 +1,95 @@
+name: Workflow Command Log Examples
+
+on: [workflow_dispatch] # Allows you to manually trigger this workflow
+
+env:
+  WORKFLOW_LEVEL_VAR: "I am a global workflow variable"
+
+jobs:
+  demonstrate_commands:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 0. Create a dummy file for annotations
+        run: |
+          echo "Line 1: All good here." > sample_file.txt
+          echo "Line 2: This line might have a problem." >> sample_file.txt
+          echo "Line 3: Another normal line." >> sample_file.txt
+
+      - name: 1. Standard Echo and Debug Message
+        run: |
+          echo "This is a standard log line from an echo command."
+          echo "::debug::This is a detailed debug message. It will have a 'DEBUG' prefix and only appear if debug logging is enabled."
+          echo "Workflow level env var: $WORKFLOW_LEVEL_VAR"
+          echo "Runner OS: $RUNNER_OS" # Example of a default env var
+
+      - name: 2. Warning Message with Annotation
+        run: |
+          echo "::warning file=sample_file.txt,line=2,title=Potential Issue Found::There's a potential issue on line 2 of sample_file.txt that needs review."
+
+      - name: 3. Error Message with Annotation
+        # This step will fail the job unless continue-on-error is true
+        continue-on-error: true 
+        run: |
+          echo "::error file=sample_file.txt,line=2,endLine=2,title=Critical File Error::A critical error was detected on line 2 of sample_file.txt!"
+
+      - name: 4. Grouped Log Output
+        run: |
+          echo "Starting a complex operation..."
+          echo "::group::Details of the Complex Operation"
+          echo "Step 1 of complex op: Initializing..."
+          echo "Step 2 of complex op: Processing data..."
+          sleep 1 # Simulate some work
+          echo "Step 3 of complex op: Finalizing..."
+          echo "::endgroup::"
+          echo "Complex operation finished."
+
+      - name: 5. Masking a Value
+        run: |
+          MY_API_KEY="supersecret_value_12345_abcdef"
+          echo "::add-mask::$MY_API_KEY" # Mask this value
+          echo "Attempting to log the API key: $MY_API_KEY"
+          echo "The API key was supersecret_value_12345_abcdef, let's see if it's masked."
+          echo "Another masked value is ${{ env.WORKFLOW_LEVEL_VAR }}" # Masking an existing env var too
+          echo "::add-mask::${{ env.WORKFLOW_LEVEL_VAR }}"
+          echo "Printing workflow var again: ${{ env.WORKFLOW_LEVEL_VAR }}"
+
+
+      - name: 6. Setting GITHUB_ENV, GITHUB_PATH, GITHUB_OUTPUT, GITHUB_STATE
+        id: set_values_step # ID is important for accessing outputs
+        run: |
+          echo "STEP_SPECIFIC_VAR=HelloFromEnvFile" >> $GITHUB_ENV
+          echo "ANOTHER_VAR=MoreEnvData" >> $GITHUB_ENV
+
+          mkdir -p $GITHUB_WORKSPACE/mycustombin
+          echo '#!/bin/bash' > $GITHUB_WORKSPACE/mycustombin/customscript
+          echo 'echo "Hello from custom script in custom path!"' >> $GITHUB_WORKSPACE/mycustombin/customscript
+          chmod +x $GITHUB_WORKSPACE/mycustombin/customscript
+          echo "$GITHUB_WORKSPACE/mycustombin" >> $GITHUB_PATH
+          
+          echo "step_output_data=ThisIsAnOutput" >> $GITHUB_OUTPUT
+          echo "another_output=42" >> $GITHUB_OUTPUT
+
+          echo "my_saved_state_for_post_action=ImportantStateValue" >> $GITHUB_STATE
+          echo "This step set various values."
+
+      - name: 7. Using Values Set by Previous Step
+        # This step will run after step 6 in the same job
+        run: |
+          echo "--- Verifying GITHUB_ENV ---"
+          echo "STEP_SPECIFIC_VAR value: $STEP_SPECIFIC_VAR"
+          echo "ANOTHER_VAR value: $ANOTHER_VAR"
+          
+          echo "--- Verifying GITHUB_PATH ---"
+          echo "Current PATH: $PATH"
+          echo "Attempting to run custom script:"
+          customscript # This should now be callable
+          
+          echo "--- Verifying GITHUB_OUTPUT ---"
+          echo "Output 'step_output_data' from 'set_values_step': ${{ steps.set_values_step.outputs.step_output_data }}"
+          echo "Output 'another_output' from 'set_values_step': ${{ steps.set_values_step.outputs.another_output }}"
+
+          echo "--- GITHUB_STATE ---"
+          echo "GITHUB_STATE is primarily for an action's own pre/main/post scripts."
+          echo "It's not directly accessed like outputs/env vars between general workflow steps."
+          echo "The value 'my_saved_state_for_post_action' was saved to GITHUB_STATE."
+          echo "If 'set_values_step' were a custom action with a post: script, that post script could access it as \$STATE_my_saved_state_for_post_action"
