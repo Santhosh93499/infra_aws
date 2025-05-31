@@ -3,13 +3,13 @@ name: Manual Dispatch with Various Inputs
 on:
   workflow_dispatch:
     inputs:
-      deployment_message:
+      deployment_message
         description: 'Message to include in the deployment log'
         required: true
         type: string
         default: 'Default deployment initiated.'
 
-      is_critical_deployment:
+      is_critical_deployment
         description: 'Is this a critical deployment requiring extra notifications?'
         required: false
         type: boolean
